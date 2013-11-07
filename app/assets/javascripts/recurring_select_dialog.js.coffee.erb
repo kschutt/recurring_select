@@ -23,6 +23,13 @@ window.RecurringSelectDialog =
       @summaryInit()
       @freq_select.focus()
       @outer_holder.trigger "recurring_select:dialog_opened"
+      $(".datepicker").appendDtpicker
+        futureOnly: true
+        timelistScroll: true
+        closeOnSelected: true
+        dateFormat: "MM/DD/YYYY"
+        dateOnly: true
+
 
     positionDialogVert: (initial_positioning) =>
       window_height = $(window).height()
@@ -59,6 +66,7 @@ window.RecurringSelectDialog =
         @cancel()
 
     save: =>
+      @current_rule.hash.until = @content.find(".until_end_time_entry")[0].value
       return if !@current_rule.str?
       @outer_holder.remove()
       @recurring_selector.recurring_select('save', @current_rule)
@@ -71,6 +79,17 @@ window.RecurringSelectDialog =
       @content.on 'click tap', 'h1 a', @cancel
       @save_button = @content.find('input.rs_save').on "click tap", @save
       @content.find('input.rs_cancel').on "click tap", @cancel
+
+      @until_select = @outer_holder.find ".until_end_time_entry"
+      @until = @current_rule.hash.until
+      d = new Date()
+      if @until
+        d = new Date(@until)
+      else
+        d.setFullYear d.getFullYear() + 1
+
+      until_string = d.getMonth() + 1 + "/" + d.getDate() + "/" + d.getFullYear() + " " + d.getHours() + ":" + d.getMinutes()
+      @until_select[0].value = until_string
 
     freqInit: ->
       @freq_select = @outer_holder.find ".rs_frequency"
@@ -219,7 +238,7 @@ window.RecurringSelectDialog =
 
       @current_rule.hash ||= {}
       @current_rule.hash.interval = 1
-      @current_rule.hash.until = null
+      @current_rule.hash.until = @content.find(".until_end_time_entry")[0].value
       @current_rule.hash.count = null
       @current_rule.hash.validations = null
       @content.find(".freq_option_section").hide();
@@ -299,6 +318,12 @@ window.RecurringSelectDialog =
         <div class='rs_dialog'>
           <div class='rs_dialog_content'>
             <h1>#{$.fn.recurring_select.texts["repeat"]} <a href='#' title='#{$.fn.recurring_select.texts["cancel"]}' Alt='#{$.fn.recurring_select.texts["cancel"]}'></a> </h1>
+            <div class='until_end_time'>
+              <p>
+                #{$.fn.recurring_select.texts["until"]}
+                <input type='text' name='rs_until_end_time' class='until_end_time_entry datepicker' value='' size='30' />
+              </p>
+            </div>
             <p>
               <label for='rs_frequency'>#{$.fn.recurring_select.texts["frequency"]}:</label>
               <select id='rs_frequency' class='rs_frequency' name='rs_frequency'>
